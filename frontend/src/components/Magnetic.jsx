@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 
-// A button that is magnetically attracted to the cursor while hovered,
-// and springs back when the pointer leaves. Makes CTAs feel tactile.
-export default function Magnetic({ children, strength = 0.35, className = "", style, ...rest }) {
+// A control that is gently attracted to the cursor while hovered, and springs
+// back with a soft elastic when the pointer leaves. Subtle, tactile.
+export default function Magnetic({ children, strength = 0.28, className = "", style, ...rest }) {
   const ref = useRef(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
@@ -10,9 +10,10 @@ export default function Magnetic({ children, strength = 0.35, className = "", st
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-    setOffset({ x: x * strength, y: y * strength });
+    setOffset({
+      x: (e.clientX - (rect.left + rect.width / 2)) * strength,
+      y: (e.clientY - (rect.top + rect.height / 2)) * strength,
+    });
   };
   const onLeave = () => setOffset({ x: 0, y: 0 });
 
@@ -22,7 +23,7 @@ export default function Magnetic({ children, strength = 0.35, className = "", st
       className={className}
       style={{
         transform: `translate(${offset.x}px, ${offset.y}px)`,
-        transition: offset.x === 0 && offset.y === 0 ? "transform .35s cubic-bezier(.2,.9,.3,1.4)" : "transform .08s linear",
+        transition: offset.x === 0 && offset.y === 0 ? "transform .5s var(--spring)" : "transform .06s linear",
         willChange: "transform",
         ...style,
       }}

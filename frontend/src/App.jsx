@@ -3,16 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Landing from "./views/Landing";
 import Play from "./views/Play";
 import Results from "./views/Results";
-import Background from "./components/Background";
-import CursorGlow from "./components/CursorGlow";
+import CursorDot from "./components/CursorDot";
 import { apiBase, setApiBase, createSession, getPost, submitAnswer, getScore } from "./api";
-import { useMousePos } from "./hooks.jsx";
-
-const viewVariants = {
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-};
+import { useHeaderVisibility } from "./hooks.jsx";
 
 export default function App() {
   const [view, setView] = useState("landing");
@@ -27,26 +20,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(null);
 
-  const [glow, onGlowMove] = useMousePos();
-  const [dot, onDotMove] = useMousePos();
-
-  useEffect(() => {
-    window.addEventListener("mousemove", onGlowMove);
-    window.addEventListener("mousemove", onDotMove);
-    return () => {
-      window.removeEventListener("mousemove", onGlowMove);
-      window.removeEventListener("mousemove", onDotMove);
-    };
-  }, [onGlowMove, onDotMove]);
-
-  const progress = roundLen ? Math.min(100, (questionNum / roundLen) * 100) : 0;
+  const headerVisible = useHeaderVisibility();
 
   const handleStart = async (len) => {
     setRoundLen(len);
-    setView("play");
     setQuestionNum(0);
     setLiveCorrect(0);
     setScore(null);
+    setView("play");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     await loadNext(null, len);
   };
 
@@ -67,7 +49,6 @@ export default function App() {
       setLoading(false);
     } catch (e) {
       setLoading(false);
-      setPost(null);
       setPost({ __err: e.message });
     }
   };
@@ -75,8 +56,7 @@ export default function App() {
   const handleAnswer = async (catId) => {
     if (answered || !post?.post_id) return;
     setAnswered(true);
-    const pick = catId;
-    setPost((prev) => ({ ...prev, _pick: pick }));
+    setPost((prev) => ({ ...prev, _pick: catId }));
     try {
       const res = await submitAnswer({
         session_id: sessionId,
@@ -87,17 +67,12 @@ export default function App() {
       const correctName =
         (post.category_options || []).find((o) => o.id === res.correct_category)?.name ||
         res.correct_category;
-      setPost((prev) => ({
-        ...prev,
-        _answer: { ...res, correct_category_name: correctName },
-      }));
+      setPost((prev) => ({ ...prev, _answer: { ...res, correct_category_name: correctName } }));
     } catch (e) {
       setPost((prev) => ({
         ...prev,
         _answer: {
-          correct: false,
-          correct_category: "",
-          correct_category_name: "…",
+          correct: false, correct_category: "", correct_category_name: "…",
           explanation: "Couldn't submit your answer: " + e.message,
         },
       }));
@@ -108,6 +83,7 @@ export default function App() {
     try {
       setScore(await getScore(sessionId));
       setView("results");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setPost((prev) => ({ ...prev, __err: "Couldn't load your score: " + e.message }));
     }
@@ -118,12 +94,15 @@ export default function App() {
     setQuestionNum(0);
     setLiveCorrect(0);
     setScore(null);
+    setView("play");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     await loadNext(null, roundLen);
   };
 
   const handleHome = () => {
     setSessionId(null);
     setView("landing");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const baseChange = (url) => {
@@ -131,35 +110,61 @@ export default function App() {
     setApiBase(url);
   };
 
+  const viewVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+    exit: { opacity: 0, transition: { duration: 0.25 } },
+  };
+
   return (
     <div className="app">
-      <Background />
-      <CursorGlow pos={glow} dot={dot} />
-      <div className="topbar-line" style={{ width: `${progress}%` }} />
+      <div className="grain" />
+      <div className="base-field">
+        <motion.div
+          className="tint"
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+      <CursorDot />
 
-      <header className="masthead">
-        <div className="masthead-inner">
+      {/* Header — disappears on scroll down, returns on scroll up */}
+      <motion.header className="header" initial={{ y: 0 }} animate={{ y: headerVisible || view === "landing" ? 0 : -110, opacity: headerVisible || view === "landing" ? 1 : 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+        <div className="header-inner">
           <div className="wordmark">
             prebunk<span className="dot">.</span>
-            <small>The manipulation game</small>
+            <small>media literacy</small>
           </div>
-          {view !== "landing" && (
-            <motion.div className="session-chip" layout>
-              Post <b>{questionNum}</b> / {roundLen} &nbsp;·&nbsp; {liveCorrect} correct
-            </motion.div>
-          )}
+          <div className="hdr-right">
+            {view === "landing" && (
+              <>
+                <button className="hdr-link" onClick={() => document.getElementById("techniques")?.scrollIntoView({ behavior: "smooth" })}>
+                  Techniques
+                </button>
+                <button className="hdr-link" onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>
+                  How it works
+                </button>
+                <a className="hdr-link accent" href="#play" style={{ textDecoration: "none" }}>
+                  Play →
+                </a>
+              </>
+            )}
+            {view !== "landing" && (
+              <span className="hdr-link" style={{ cursor: "default" }}>Post {questionNum}/{roundLen}</span>
+            )}
+          </div>
         </div>
-      </header>
+      </motion.header>
 
-      <div className="wrap">
+      <main className="wrap">
         <AnimatePresence mode="wait">
           {view === "landing" && (
-            <motion.main key="landing" variants={viewVariants} initial="initial" animate="animate" exit="exit">
+            <motion.div key="landing" variants={viewVariants} initial="initial" animate="animate" exit="exit">
               <Landing apiBase={apiURL} setApiBase={baseChange} onStart={handleStart} />
-            </motion.main>
+            </motion.div>
           )}
           {view === "play" && (
-            <motion.main key="play" variants={viewVariants} initial="initial" animate="animate" exit="exit">
+            <motion.div key="play" variants={viewVariants} initial="initial" animate="animate" exit="exit">
               <Play
                 post={post}
                 questionNum={questionNum}
@@ -172,15 +177,15 @@ export default function App() {
                 onNext={() => loadNext()}
                 onFinish={handleFinish}
               />
-            </motion.main>
+            </motion.div>
           )}
           {view === "results" && (
-            <motion.main key="results" variants={viewVariants} initial="initial" animate="animate" exit="exit">
+            <motion.div key="results" variants={viewVariants} initial="initial" animate="animate" exit="exit">
               <Results score={score} onAgain={handleAgain} onHome={handleHome} />
-            </motion.main>
+            </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
     </div>
   );
 }

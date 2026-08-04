@@ -1,40 +1,39 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Tilt } from "../hooks.jsx";
-import { CAT_STYLE, fmtPct, userInfo, sharesFor } from "../data";
+import { fmtPct, userInfo, sharesFor, titleize } from "../data";
 
+const EASE = [0.22, 1, 0.36, 1];
 const optAnim = (i) => ({
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { delay: i * 0.04, duration: 0.35, ease: "easeOut" } },
+  initial: { opacity: 0, scale: 0.97 },
+  animate: { opacity: 1, scale: 1, transition: { delay: i * 0.05, duration: 0.5, ease: EASE } },
 });
 
-export default function Play({
-  post, questionNum, roundLen, liveCorrect, answered,
-  onAnswer, onNext, onFinish, loading, errMsg,
-}) {
+export default function Play({ post, questionNum, roundLen, liveCorrect, answered, onAnswer, onNext, onFinish, loading, errMsg }) {
   const info = post ? userInfo(post.post_id, post.language) : { name: "…", time: "now" };
 
   return (
     <div className="play">
-      <div className="game-head">
-        <motion.span key={questionNum} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="count">
-          Post <b>{questionNum}</b> of {roundLen}
-        </motion.span>
-        <span className="acc">
-          Accuracy <b>{questionNum ? fmtPct(liveCorrect / questionNum) : "—"}</b>
-        </span>
+      <div className="play-top">
+        <div className="count">
+          <small>Post {questionNum} of {roundLen}</small>
+          {questionNum}
+        </div>
+        <div className="acc">
+          Accuracy&nbsp; <b>{questionNum ? fmtPct(liveCorrect / questionNum) : "—"}</b>
+        </div>
       </div>
 
       <div className="play-layout">
-        <Tilt className="post" maxDeg={4} maxShift={6}>
+        <Tilt className="post" maxDeg={3} maxShift={4}>
           {!post && loading && (
-            <div className="loading-cnt"><div className="spin" /><span>Fetching next post</span></div>
+            <div className="loading-cnt"><div className="spin" />Fetching next post</div>
           )}
-          {!post && !loading && errMsg && <div className="error">{errMsg}</div>}
+          {!post && !loading && errMsg && <div className="error"><b>Couldn't load the post.</b>{errMsg}</div>}
           {post && (
             <>
               <div className="post-top">
                 <div className="mono">{(post.text || "?").trim().charAt(0).toUpperCase()}</div>
-                <div className="unbox">
+                <div>
                   <div className="un">{info.name}</div>
                   <div className="h">{info.time} · Public</div>
                 </div>
@@ -47,22 +46,19 @@ export default function Play({
               </div>
               <div className="post-body">{post.text}</div>
               <div className="post-actions">
-                <span>💬 0</span>
-                <span>↻ <b>{sharesFor(post.post_id)}</b></span>
-                <span>♥ 0</span>
+                <span>Reply</span><span>↻ {sharesFor(post.post_id)}</span><span>♡</span>
               </div>
             </>
           )}
         </Tilt>
 
         <div className="play-side">
-          <div className="question">
-            Which technique is hiding <em>here?</em>
-          </div>
+          <motion.h2 className="question" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+            Which technique is <em>hiding here?</em>
+          </motion.h2>
 
-          <motion.div className="opts" initial="hidden" animate="show">
+          <div className="opts">
             {(post?.category_options || []).map((opt, i) => {
-              const st = CAT_STYLE[opt.id] || { glyph: "?" };
               let cls = "opt";
               if (answered) {
                 if (opt.id === post._answer?.correct_category) cls += " right";
@@ -73,15 +69,14 @@ export default function Play({
                 <motion.button
                   key={opt.id}
                   className={cls}
-                  style={{ "--tc": st.color }}
-                  variants={optAnim(i)}
+                  {...optAnim(i)}
                   disabled={answered}
-                  whileHover={answered ? {} : { y: -2, scale: 1.015 }}
-                  whileTap={answered ? {} : { scale: 0.97 }}
+                  whileHover={answered ? {} : { y: -2 }}
+                  whileTap={answered ? {} : { scale: 0.98 }}
                   onClick={() => onAnswer(opt.id)}
                 >
-                  <span className="glyph">{st.glyph}</span>
-                  <span className="name">{opt.name}</span>
+                  <span className="glyph">{opt.id.slice(0, 2)}</span>
+                  <span className="name">{titleize(opt.id)}</span>
                   {answered && opt.id === post._answer?.correct_category && <span className="tick">✓</span>}
                   {answered && opt.id === post._pick && opt.id !== post._answer?.correct_category && (
                     <span className="cross">✕</span>
@@ -89,39 +84,31 @@ export default function Play({
                 </motion.button>
               );
             })}
-          </motion.div>
+          </div>
 
           <AnimatePresence>
             {answered && post?._answer && (
-              <motion.div className="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="head">
-                  <div className={`stamp ${post._answer.correct ? "ok" : "bad"}`}>
-                    {post._answer.correct ? "Spotted ✓" : "Missed it"}
-                    <em> — {post._answer.correct_category_name}</em>
-                  </div>
+              <motion.div className="feedback" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+                <div className={`stamp ${post._answer.correct ? "ok" : "bad"}`}>
+                  {post._answer.correct ? "Spotted it." : "Missed it."}
+                  <em> — {post._answer.correct_category_name}</em>
                 </div>
-                <div className="expl">{post._answer.explanation}</div>
+                <p className="expl">{post._answer.explanation}</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           {!answered && (
             <div className="end-row">
-              <button className="btn ghost small" onClick={onFinish}>End round &amp; see results</button>
+              <button className="btn ghost sm" onClick={onFinish}>End round &amp; see results</button>
             </div>
           )}
 
           {answered && (
             <div className="next-wrap">
-              {questionNum >= roundLen ? (
-                <motion.button className="btn block solid" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} onClick={onFinish}>
-                  See results →
-                </motion.button>
-              ) : (
-                <motion.button className="btn block solid" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} onClick={onNext}>
-                  Next post →
-                </motion.button>
-              )}
+              <motion.button className="btn primary" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} onClick={onFinish}>
+                {questionNum >= roundLen ? "See results" : "Next post"} <span className="arr">→</span>
+              </motion.button>
             </div>
           )}
         </div>

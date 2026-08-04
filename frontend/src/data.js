@@ -1,26 +1,82 @@
-// Static display info for the six techniques, plus little helpers.
-// Each technique has a distinct color identity (color = the glow/border tint).
+// Content + display metadata for the six techniques.
 
-export const CAT_STYLE = {
-  false_urgency:    { glyph: "⏰", color: "#ff6b6b", blurb: "Act now!" },
-  fake_authority:   { glyph: "◈", color: "#ffd166", blurb: "Trust me, I'm an expert" },
-  emotional_bait:   { glyph: "✲", color: "#ff5db1", blurb: "This will make you feel" },
-  fake_consensus:   { glyph: "✦", color: "#2ee6b8", blurb: "Everyone already knows" },
-  misleading_stats: { glyph: "∿", color: "#4bd6ff", blurb: "Numbers without context" },
-  ai_content_cues:  { glyph: "✕", color: "#a96bff", blurb: "Something looks off" },
-};
+export const TECHNIQUES = [
+  {
+    id: "false_urgency",
+    glyph: "⏱",
+    title: "False Urgency",
+    desc: "Pressure to act or share instantly, before you can think.",
+    tagline: "The countdown that isn't",
+  },
+  {
+    id: "fake_authority",
+    glyph: "◎",
+    title: "Fake Authority",
+    desc: "Borrowed credibility — vague experts, invented titles, unnamed insiders.",
+    tagline: "Trust borrowed, never earned",
+  },
+  {
+    id: "emotional_bait",
+    glyph: "✳",
+    title: "Emotional Bait",
+    desc: "Content engineered to trigger a strong reaction before reasoning kicks in.",
+    tagline: "Feel first, think never",
+  },
+  {
+    id: "fake_consensus",
+    glyph: "≈",
+    title: "Fake Consensus",
+    desc: "“Everyone already believes this” — social pressure standing in for truth.",
+    tagline: "Popularity posing as proof",
+  },
+  {
+    id: "misleading_stats",
+    glyph: "‰",
+    title: "Misleading Stats",
+    desc: "Real-sounding numbers presented without context, baseline, or source.",
+    tagline: "Accurate, and still a lie",
+  },
+  {
+    id: "ai_content_cues",
+    glyph: "∿",
+    title: "AI Content Cues",
+    desc: "The subtle tells that an image, voice, or video was generated or altered.",
+    tagline: "Six fingers, no shadows",
+  },
+];
 
-export const CAT_META = {
-  false_urgency:    "Pressure to act or share instantly, before you can think.",
-  fake_authority:   "Borrowed credibility — vague experts, fake titles, unnamed insiders.",
-  emotional_bait:   "Content engineered to trigger a strong reaction first.",
-  fake_consensus:   "“Everyone already believes this” — pressure to conform.",
-  misleading_stats: "Real-sounding numbers without context, baseline, or source.",
-  ai_content_cues:  "Tells that an image, voice, or video may be AI-made.",
-};
+export const TECH = Object.fromEntries(TECHNIQUES.map((t) => [t.id, t]));
+
+export const CAT_META = Object.fromEntries(TECHNIQUES.map((t) => [t.id, t.desc]));
+
+export const HOW_IT_WORKS = [
+  {
+    n: "01",
+    title: "Read the post",
+    body: "You're shown a realistic, AI-generated social post — just like one you'd see in your feed.",
+  },
+  {
+    n: "02",
+    title: "Spot the tell",
+    body: "Choose which of the six manipulation techniques it's hiding. Trust your instinct, then commit.",
+  },
+  {
+    n: "03",
+    title: "Learn the why",
+    body: "Get an instant, plain-English explanation. The game adapts to the techniques you struggle with.",
+  },
+];
+
+export const STATS = [
+  { val: 30, suffix: "+", label: "hand-crafted posts", sub: "synthetic · never real news" },
+  { val: 6, suffix: "", label: "techniques to master", sub: "from urgency to AI cues" },
+  { val: 2, suffix: "", label: "languages", sub: "English & Hinglish" },
+  { val: 100, suffix: "%", label: "adaptive difficulty", sub: "learns your weak spots" },
+];
 
 export function titleize(id) {
-  return id.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+  const t = TECH[id];
+  return t ? t.title : id.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
 export function fmtPct(x) {

@@ -1,49 +1,38 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 
-// Track the mouse relative to the whole window (for the background glow).
+// Mouse position relative to the window (0..1).
 export function useMousePos() {
   const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
   const onMove = useCallback((e) => {
-    setPos({
-      x: e.clientX / window.innerWidth,
-      y: e.clientY / window.innerHeight,
-    });
+    setPos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
   }, []);
   return [pos, onMove];
 }
 
-// A spring-lagged mouse position for smooth, slow parallax / glow movement.
-export function useLerpedMouse(maxLag = 0.12) {
+// Smooth, spring-lagged mouse position for subtle parallax.
+export function useLerpedMouse(maxLag = 0.1) {
   const target = useRef({ x: 0.5, y: 0.5 });
   const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
   const raf = useRef();
-
   const onMove = useCallback((e) => {
-    target.current = {
-      x: e.clientX / window.innerWidth,
-      y: e.clientY / window.innerHeight,
-    };
+    target.current = { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight };
   }, []);
-
-  // start the rAF loop once
   if (!raf.current && typeof window !== "undefined") {
     const tick = () => {
-      const t = target.current;
-      setPos((prev) => {
-        const nx = prev.x + (t.x - prev.x) * maxLag;
-        const ny = prev.y + (t.y - prev.y) * maxLag;
-        return { x: nx, y: ny };
-      });
+      setPos((prev) => ({
+        x: prev.x + (target.current.x - prev.x) * maxLag,
+        y: prev.y + (target.current.y - prev.y) * maxLag,
+      }));
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
   }
-
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
   return [pos, onMove];
 }
 
-// 3D tilt on hover. Returns handlers to spread onto a DOM element.
-export function useTilt(maxDeg = 9, maxShift = 12) {
+// 3D tilt on hover.
+export function useTilt(maxDeg = 7, maxShift = 8) {
   const ref = useRef(null);
   const frame = useRef();
   const onMove = useCallback((e) => {
@@ -55,32 +44,51 @@ export function useTilt(maxDeg = 9, maxShift = 12) {
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
       el.style.transform =
-        `perspective(900px) rotateX(${(-py * maxDeg).toFixed(2)}deg) ` +
-        `rotateY(${(px * maxDeg).toFixed(2)}deg) translate(${(px * maxShift).toFixed(1)}px, ${(py * maxShift).toFixed(1)}px)`;
+        `perspective(1100px) rotateX(${(-py * maxDeg).toFixed(2)}deg) rotateY(${(px * maxDeg).toFixed(2)}deg) translate(${(px * maxShift).toFixed(1)}px, ${(py * maxShift).toFixed(1)}px)`;
     });
   }, [maxDeg, maxShift]);
-
   const onLeave = useCallback(() => {
     cancelAnimationFrame(frame.current);
     const el = ref.current;
-    if (el) el.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg) translate(0,0)";
+    if (el) el.style.transform = "perspective(1100px) rotateX(0deg) rotateY(0deg) translate(0,0)";
   }, []);
-
   return { ref, onMouseMove: onMove, onMouseLeave: onLeave };
 }
 
-// A Tilt component that renders children with the handlers attached.
-export function Tilt({ children, className, maxDeg = 8, maxShift = 10, style }) {
+export function Tilt({ children, className, maxDeg = 7, maxShift = 8, style }) {
   const { ref, onMouseMove, onMouseLeave } = useTilt(maxDeg, maxShift);
   return (
     <div
       ref={ref}
       className={className}
-      style={{ transformStyle: "preserve-3d", willChange: "transform", transition: "transform .25s ease-out", ...style }}
+      style={{ transformStyle: "preserve-3d", willChange: "transform", transition: "transform .3s var(--ease)", ...style }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
       {children}
     </div>
   );
+}
+
+// Whether the header should be visible given scroll position + direction.
+export function useHeaderVisibility() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        // hide on scroll down after threshold, show on scroll up or near top
+        setVisible(y < 60 || y < lastY);
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return visible;
 }
