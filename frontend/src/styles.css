@@ -73,6 +73,20 @@ img,svg,canvas,video{max-width:100%}
   will-change:transform;
 }
 
+/* ============ word field — cursor light reveal ============ */
+.wordfield{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.wf-word{
+  position:absolute;font-family:var(--mono);font-size:13px;letter-spacing:.02em;
+  color:var(--ink-2);opacity:.055;line-height:1;white-space:nowrap;
+  will-change:transform,opacity,color;
+  transition:opacity .5s ease,color .5s ease,transform .5s ease,font-weight .3s ease;
+}
+.wf-glow{
+  position:absolute;top:0;left:0;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle, rgba(79,70,229,.10), rgba(79,70,229,.04) 40%, transparent 68%);
+  will-change:transform;opacity:0;transition:opacity .8s ease;
+}
+
 /* subtle cursor follower */
 .cursor-dot{
   position:fixed;top:0;left:0;width:7px;height:7px;border-radius:50%;

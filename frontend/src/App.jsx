@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Landing from "./views/Landing";
 import Play from "./views/Play";
 import Results from "./views/Results";
+import WordField from "./components/WordField";
 import CursorDot from "./components/CursorDot";
 import { apiBase, setApiBase, createSession, getPost, submitAnswer, getScore } from "./api";
 import { useHeaderVisibility } from "./hooks.jsx";
@@ -126,6 +127,7 @@ export default function App() {
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
         />
       </div>
+      {view === "landing" && <WordField />}
       <CursorDot />
 
       {/* Header — disappears on scroll down, returns on scroll up */}
