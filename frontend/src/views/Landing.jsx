@@ -22,7 +22,7 @@ function Hero() {
 
   return (
     <section className="hero" onMouseMove={onMouseMove} style={{ position: "relative" }}>
-      <motion.div style={{ x: px, y: py }}>
+      <motion.div className="hero-inner" style={{ x: px, y: py }}>
         <div className="eyebrow">A media-literacy game</div>
         <h1>
           <span className="mask"><span>Don't believe</span></span>
