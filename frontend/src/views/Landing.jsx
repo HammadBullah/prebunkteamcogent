@@ -1,17 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { Tilt, useMousePos } from "../hooks.jsx";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
+import { Tilt } from "../hooks.jsx";
 import Magnetic from "../components/Magnetic";
-import { Reveal, ScaleIn, FadeIn } from "../components/Reveal";
+import { Reveal, ScaleIn } from "../components/Reveal";
 import Counter from "../components/Counter";
 import { health } from "../api";
 import { TECHNIQUES, HOW_IT_WORKS, STATS } from "../data";
 
 /* ---------------- HERO ---------------- */
 function Hero() {
-  const [mouse, onMouseMove] = useMousePos();
-  const px = useSpring(useTransform(mouse, (m) => (m.x - 0.5) * 14), { stiffness: 60, damping: 20 });
-  const py = useSpring(useTransform(mouse, (m) => (m.y - 0.5) * 14), { stiffness: 60, damping: 20 });
+  // MotionValues (not plain state) so useTransform/useSpring work correctly.
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const px = useSpring(useTransform(mx, (v) => v * 14), { stiffness: 60, damping: 20 });
+  const py = useSpring(useTransform(my, (v) => v * 14), { stiffness: 60, damping: 20 });
+
+  const onMouseMove = (e) => {
+    mx.set(e.clientX / window.innerWidth - 0.5);
+    my.set(e.clientY / window.innerHeight - 0.5);
+  };
 
   return (
     <section className="hero" onMouseMove={onMouseMove} style={{ position: "relative" }}>
@@ -50,13 +57,14 @@ function Statement() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.5"] });
   const ink = useSpring(scrollYProgress, { stiffness: 70, damping: 24 });
   const opacity = useTransform(ink, [0.1, 0.6], [0.25, 1]);
-  const accent = useTransform(ink, [0.4, 0.85], [0, 1]);
+  // interpolate between two real hex colors (no CSS var → no runtime crash)
+  const accentColor = useTransform(ink, [0.4, 0.85], ["#16151a", "#4f46e5"]);
 
   return (
     <section ref={ref} className="statement">
       <motion.p style={{ opacity }}>
         Most people don't fall for misinformation — they{" "}
-        <motion.em style={{ color: useTransform(accent, [0, 1], ["#16151a", "var(--accent)"]) }} className="hl">
+        <motion.em style={{ color: accentColor }} className="hl">
           get moved
         </motion.em>{" "}
         before they think.
@@ -99,6 +107,7 @@ function HowItWorks() {
   const stepIndex = useTransform(scrollYProgress, [0, 0.33, 0.66, 1], [0, 1, 2, 3]);
   const bgX = useTransform(scrollYProgress, [0, 1], ["2%", "-18%"]);
   const bgY = useSpring(bgX, { stiffness: 40, damping: 20 });
+  const leftOpacity = useTransform(stepIndex, (s) => (Math.floor(s) === 0 ? 1 : 0.25));
 
   return (
     <section ref={ref} className="hiw" id="how">
@@ -106,9 +115,7 @@ function HowItWorks() {
         <motion.div className="bg-word" style={{ x: bgY }}>prebunk</motion.div>
         <div className="hiw-inner">
           <motion.div className="hiw-left">
-            <motion.div
-              style={{ opacity: useTransform(stepIndex, (s) => (Math.floor(s) === 0 ? 1 : 0.25)) }}
-            >
+            <motion.div style={{ opacity: leftOpacity }}>
               <div className="stepnum">Step 01</div>
               <h2>Read the post.</h2>
               <p>You're shown a realistic, AI-generated social post — just like one you'd see in your feed.</p>
