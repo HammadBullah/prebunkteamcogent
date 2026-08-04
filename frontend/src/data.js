@@ -1,12 +1,13 @@
 // Static display info for the six techniques, plus little helpers.
+// Each technique has a distinct color identity (color = the glow/border tint).
 
 export const CAT_STYLE = {
-  false_urgency:    { glyph: "⏰", blurb: "Act now!" },
-  fake_authority:   { glyph: "◈", blurb: "Trust me, I'm an expert" },
-  emotional_bait:   { glyph: "✲", blurb: "This will make you feel" },
-  fake_consensus:   { glyph: "✦", blurb: "Everyone already knows" },
-  misleading_stats: { glyph: "∿", blurb: "Numbers without context" },
-  ai_content_cues:  { glyph: "✕", blurb: "Something looks off" },
+  false_urgency:    { glyph: "⏰", color: "#ff6b6b", blurb: "Act now!" },
+  fake_authority:   { glyph: "◈", color: "#ffd166", blurb: "Trust me, I'm an expert" },
+  emotional_bait:   { glyph: "✲", color: "#ff5db1", blurb: "This will make you feel" },
+  fake_consensus:   { glyph: "✦", color: "#2ee6b8", blurb: "Everyone already knows" },
+  misleading_stats: { glyph: "∿", color: "#4bd6ff", blurb: "Numbers without context" },
+  ai_content_cues:  { glyph: "✕", color: "#a96bff", blurb: "Something looks off" },
 };
 
 export const CAT_META = {

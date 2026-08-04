@@ -60,74 +60,68 @@ export default function Landing({ apiBase, setApiBase, onStart }) {
         </p>
       </motion.div>
 
-      <motion.div className="rule" variants={item}>
-        <span>Move your cursor around — the cards follow</span>
-      </motion.div>
-
-      <motion.div className="techniques" variants={item}>
-        {Object.entries(CAT_STYLE).map(([id, st], i) => (
-          <Tilt key={id} className="tcard" maxDeg={7} maxShift={8} style={{ zIndex: Math.floor(i / 2) }}>
-            <div className="tcard-inner">
-              <span className="tnum">{String(i + 1).padStart(2, "0")}</span>
-              <span className="tglyph">{st.glyph}</span>
-              <div className="ttext">
-                <div className="tnm">{titleize(id)}</div>
-                <div className="tds">{CAT_META[id]}</div>
-                <div className="tblurb">{st.blurb}</div>
-              </div>
-            </div>
-          </Tilt>
-        ))}
-      </motion.div>
-
-      <motion.div className="rule" variants={item}>
-        <span>Set up your round</span>
-      </motion.div>
-
-      <motion.div className="settings" variants={item}>
-        <label className="field">
-          <span className="k">Posts per round</span>
-          <select value={roundLen} onChange={(e) => setRoundLen(+e.target.value)}>
-            {[5, 10, 15, 20].map((n) => (
-              <option key={n} value={n}>{n}</option>
+      <div className="landing-grid">
+        <motion.div className="col" variants={item}>
+          <div className="rule"><span>The six tells</span></div>
+          <div className="techniques">
+            {Object.entries(CAT_STYLE).map(([id, st], i) => (
+              <Tilt key={id} className="tcard" maxDeg={7} maxShift={8} style={{ "--tc": st.color }}>
+                <div className="tcard-inner">
+                  <span className="tnum">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="tglyph">{st.glyph}</span>
+                  <div className="ttext">
+                    <div className="tnm">{titleize(id)}</div>
+                    <div className="tds">{CAT_META[id]}</div>
+                    <div className="tblurb">{st.blurb}</div>
+                  </div>
+                </div>
+              </Tilt>
             ))}
-          </select>
-        </label>
-        <label className="field">
-          <span className="k">Backend URL</span>
-          <input
-            value={apiBase}
-            onChange={(e) => handleBase(e.target.value)}
-            placeholder="http://127.0.0.1:8000"
-          />
-        </label>
-      </motion.div>
-
-      <motion.div variants={item}>
-        <Magnetic className="btn block solid" disabled={status.dot !== "online"} onClick={() => onStart(roundLen)}>
-          Start game <span aria-hidden>→</span>
-        </Magnetic>
-      </motion.div>
-
-      <motion.div className={`status-row`} variants={item}>
-        <span className={`dot ${status.dot}`} />
-        <span>{status.text}</span>
-      </motion.div>
-
-      {error && (
-        <motion.div className="error" variants={item}>
-          <b>Can't reach the backend.</b> Make sure your friend's server is running
-          (<code>uvicorn app.main:app --reload</code>) and the URL above points to it.
+          </div>
         </motion.div>
-      )}
 
-      {/* faint pointer hint that drifts with the mouse */}
-      <motion.div
-        className="pointer-hint"
-        animate={{ x: (mouse.x - 0.5) * -14, y: (mouse.y - 0.5) * -14 }}
-        transition={{ type: "spring", stiffness: 60, damping: 20 }}
-        aria-hidden
-      >
+        <motion.div className="col side" variants={item}>
+          <div className="rule"><span>Set up your round</span></div>
+          <div className="panel">
+            <div className="settings">
+              <label className="field">
+                <span className="k">Posts per round</span>
+                <select value={roundLen} onChange={(e) => setRoundLen(+e.target.value)}>
+                  {[5, 10, 15, 20].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span className="k">Backend URL</span>
+                <input
+                  value={apiBase}
+                  onChange={(e) => handleBase(e.target.value)}
+                  placeholder="http://127.0.0.1:8000"
+                />
+              </label>
+            </div>
+
+            <Magnetic className="btn block solid" disabled={status.dot !== "online"} onClick={() => onStart(roundLen)}>
+              Start game <span aria-hidden>→</span>
+            </Magnetic>
+
+            <div className="status-row">
+              <span className={`dot ${status.dot}`} />
+              <span>{status.text}</span>
+            </div>
+
+            {error && (
+              <div className="error">
+                <b>Can't reach the backend.</b> Make sure your friend's server is running
+                (<code>uvicorn app.main:app --reload</code>) and the URL above points to it.
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      <motion.div className="pointer-hint" animate={{ x: (mouse.x - 0.5) * -14, y: (mouse.y - 0.5) * -14 }} aria-hidden>
         ✦
       </motion.div>
     </motion.div>

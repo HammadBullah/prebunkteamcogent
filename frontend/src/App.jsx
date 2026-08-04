@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import Landing from "./views/Landing";
 import Play from "./views/Play";
 import Results from "./views/Results";
+import Background from "./components/Background";
 import CursorGlow from "./components/CursorGlow";
 import { apiBase, setApiBase, createSession, getPost, submitAnswer, getScore } from "./api";
 import { useMousePos } from "./hooks.jsx";
-import { titleize } from "./data";
 
 const viewVariants = {
   initial: { opacity: 0, y: 14 },
@@ -133,21 +133,25 @@ export default function App() {
 
   return (
     <div className="app">
+      <Background />
       <CursorGlow pos={glow} dot={dot} />
       <div className="topbar-line" style={{ width: `${progress}%` }} />
-      <div className="wrap">
-        <header className="masthead">
+
+      <header className="masthead">
+        <div className="masthead-inner">
           <div className="wordmark">
             prebunk<span className="dot">.</span>
             <small>The manipulation game</small>
           </div>
           {view !== "landing" && (
             <motion.div className="session-chip" layout>
-              {questionNum}/{roundLen}
+              Post <b>{questionNum}</b> / {roundLen} &nbsp;·&nbsp; {liveCorrect} correct
             </motion.div>
           )}
-        </header>
+        </div>
+      </header>
 
+      <div className="wrap">
         <AnimatePresence mode="wait">
           {view === "landing" && (
             <motion.main key="landing" variants={viewVariants} initial="initial" animate="animate" exit="exit">
