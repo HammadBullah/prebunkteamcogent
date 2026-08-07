@@ -189,7 +189,7 @@ function CTA({ apiBase, setApiBase, onStart, status, error }) {
                 <input
                   value={apiBase}
                   onChange={(e) => setApiBase(e.target.value)}
-                  placeholder="http://127.0.0.1:8000"
+                  placeholder="https://prebunk-api.onrender.com"
                 />
               </label>
             </div>

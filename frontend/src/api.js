@@ -1,5 +1,5 @@
 // Thin wrapper around the FastAPI backend. All endpoints live in ../backend.
-const DEFAULT_API = "http://127.0.0.1:8000";
+const DEFAULT_API = "https://prebunk-api.onrender.com";
 
 export const apiBase = () =>
   (localStorage.getItem("prebunk.api") || DEFAULT_API).replace(/\/$/, "");
